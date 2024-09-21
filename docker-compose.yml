@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis/redis-stack
+    container_name: redis
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - ./redis_backup:/data
+    environment:
+      - REDIS_PASSWORD=foobared
+
+  aiogram:
+    container_name: aiogram
+    build:
+      context: ./aiogram
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=foobared
+
+  django-backend:
+    container_name: django-backend
+    build:
+      context: ./django-backend
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=foobared
+    ports:
+      - "8000:8000"
+
+  fastapi-microservice:
+    container_name: fastapi-microservice
+    build:
+      context: ./fastapi-microservice
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=foobared
+    ports:
+      - "8002:8002"
